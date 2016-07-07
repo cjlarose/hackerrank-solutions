@@ -1,4 +1,4 @@
-module LargestRetangle where
+module Main where
 
 readInts :: String -> [Int]
 readInts = (map read) . words
