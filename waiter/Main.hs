@@ -1,6 +1,5 @@
 module Main where
 
-import qualified Data.Map as Map
 import Data.List (partition)
 
 readInts :: String -> [Int]
