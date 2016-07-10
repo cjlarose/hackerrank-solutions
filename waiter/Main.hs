@@ -5,9 +5,9 @@ import Data.List (partition)
 readInts :: String -> [Int]
 readInts = map read . words
 
-primeFactors n = [d | d <- [2..n], n `mod` d == 0]
+factors n = [d | d <- [2..n], n `mod` d == 0]
 
-primes = [p | p <- [2..], null . tail . primeFactors $ p]
+primes = [p | p <- [2..], null . tail . factors $ p]
 
 stackPlates q plates = fmt $ foldl f ([], reverse plates) (take q primes)
   where
