@@ -1,7 +1,7 @@
 module Main where
 
-import Control.Monad (replicateM, (<=<))
-import Data.List (permutations)
+import qualified Data.Set as Set
+import Control.Monad (replicateM)
 
 readTestCase :: IO (String, String)
 readTestCase = do
@@ -9,19 +9,24 @@ readTestCase = do
   l2 <- getLine
   return (l1, l2)
 
-pickStack (s, (x:xs, [])) = [(x : s, (xs, []))]
-pickStack (s, ([], y:ys)) = [(y : s, ([], ys))]
+type StackState = (String, (String, String))
+
+pickStack (s, (x:xs, [])) = [(s ++ [x], (xs, []))]
+pickStack (s, ([], y:ys)) = [(s ++ [y], ([], ys))]
 pickStack (s, (x:xs, y:ys))
-  | x == y    = [(x : s, (xs, y:ys)), (y : s, (x:xs, ys))]
-  | x < y     = [(x : s, (xs, y:ys))]
-  | otherwise = [(y : s, (x:xs, ys))]
+  | x == y    = [(s ++ [x], (xs, y:ys)), (s ++ [y], (x:xs, ys))]
+  | x < y     = [(s ++ [x], (xs, y:ys))]
+  | otherwise = [(s ++ [y], (x:xs, ys))]
 
-inSteps n = foldr (<=<) return (replicate n pickStack)
 
-minimalStack xs ys = minimum . map (reverse . fst) $ allResults
-  where
-    n = length xs + length ys
-    allResults = inSteps n ("", (xs, ys))
+minimalStack' :: Set.Set StackState -> String
+minimalStack' q
+  | (== ("", "")) . snd . Set.elemAt 0 $ q = fst $ Set.elemAt 0 q
+  | otherwise = minimalStack' . Set.union newElems . Set.deleteAt 0 $ q
+      where
+        newElems = Set.fromList . pickStack . Set.elemAt 0 $ q
+
+minimalStack xs ys = minimalStack' . Set.singleton $ ("", (xs, ys))
 
 main = do
   inputSizeLine <- getLine
