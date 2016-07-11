@@ -1,7 +1,7 @@
 module Main where
 
+import qualified Data.Set as Set
 import Control.Monad (replicateM)
-import Data.List (minimumBy)
 
 readTestCase :: IO (String, String)
 readTestCase = do
@@ -11,23 +11,47 @@ readTestCase = do
 
 type StackState = (String, (String, String))
 
-pickStack (s, (x:xs, [])) = [(x : s, (xs, []))]
-pickStack (s, ([], y:ys)) = [(y : s, ([], ys))]
+pickStack :: StackState -> Set.Set StackState
+pickStack (s, (x:xs, [])) = Set.singleton (x : s, (xs, []))
+pickStack (s, ([], y:ys)) = Set.singleton (y : s, ([], ys))
 pickStack (s, (x:xs, y:ys))
-  | x == y    = [(x : s, (xs, y:ys)), (y : s, (x:xs, ys))]
-  | x < y     = [(x : s, (xs, y:ys))]
-  | otherwise = [(y : s, (x:xs, ys))]
+  | x == y    = Set.fromList [(x : s, (xs, y:ys)), (y : s, (x:xs, ys))]
+  | x < y     = Set.singleton (x : s, (xs, y:ys))
+  | otherwise = Set.singleton (y : s, (x:xs, ys))
 
-pruneStep xs = filter (((==) minEl) . fst) xs
-  where minEl = minimum . map fst $ xs
+pruneStep :: Set.Set StackState -> Set.Set StackState
+pruneStep xs = Set.filter (((==) minEl) . fst) xs
+  where
+    (minEl, _) = Set.findMin xs
+-- pruneStep xs = Set.fromList . filter (((==) minEl) . fst) . Set.toList $ xs
+--   where minEl = minimum . map fst . Set.toList $ xs
 
-minimalStack' :: [StackState] -> String
+-- advanceStack :: [StackState] -> [StackState]
+-- advanceStack xs = foldl f [('[' : (fst . head) xs, ("", ""))] xs
+--   where
+--     f a@((m:_, _):_) e@(s, (x:xs, []))
+--       | x < m = pickStack e
+--       | x == m = pickStack e ++ a
+--       | otherwise = a
+--     f a@((m:_, _):_) e@(s, ([], y:xs))
+--       | y < m = pickStack e
+--       | y == m = pickStack e ++ a
+--       | otherwise = a
+--     f a@((m:_, _):_) e@(s, (x:xs, y:ys))
+--       | min x y < m = pickStack e
+--       | min x y == m = pickStack e ++ a
+--       | otherwise = a
+
+advanceStack :: Set.Set StackState -> Set.Set StackState
+advanceStack q = pruneStep $ {-# SCC "union" #-} Set.unions $ {-# SCC "mapping" #-} map pickStack $ Set.toList $ q
+
+minimalStack' :: Set.Set StackState -> String
 minimalStack' q
-  | (== ("", "")) . snd . head $ q = reverse . fst . head $ q
-  | otherwise = minimalStack' $ pruneStep $ {-# SCC "concatMap" #-} concatMap pickStack $ q
+  | (== ("", "")) . snd . Set.elemAt 0 $ q = reverse . fst . Set.elemAt 0 $ q
+  | otherwise = minimalStack' . advanceStack $ q
 
 minimalStack :: String -> String -> String
-minimalStack xs ys = minimalStack' [("", (xs, ys))]
+minimalStack xs ys = minimalStack' . Set.singleton $ ("", (xs, ys))
 
 main = do
   inputSizeLine <- getLine
