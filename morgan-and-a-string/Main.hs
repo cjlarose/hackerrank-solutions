@@ -18,14 +18,15 @@ pickStack (s, (x:xs, y:ys))
   | x < y     = [(s ++ [x], (xs, y:ys))]
   | otherwise = [(s ++ [y], (x:xs, ys))]
 
+pruneStep xs = filter (((==) minEl) . fst) xs
+  where minEl = minimum . map fst $ xs
 
 minimalStack' :: Set.Set StackState -> String
 minimalStack' q
   | (== ("", "")) . snd . Set.elemAt 0 $ q = fst $ Set.elemAt 0 q
-  | otherwise = minimalStack' . Set.union newElems . Set.deleteAt 0 $ q
-      where
-        newElems = Set.fromList . pickStack . Set.elemAt 0 $ q
+  | otherwise = minimalStack' . Set.fromList . pruneStep . concatMap pickStack . Set.toList $ q
 
+minimalStack :: String -> String -> String
 minimalStack xs ys = minimalStack' . Set.singleton $ ("", (xs, ys))
 
 main = do
