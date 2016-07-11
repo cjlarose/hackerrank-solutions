@@ -19,31 +19,22 @@ pickStack (s, (x:xs, y:ys))
   | x < y     = Set.singleton (x : s, (xs, y:ys))
   | otherwise = Set.singleton (y : s, (x:xs, ys))
 
-pruneStep :: Set.Set StackState -> Set.Set StackState
-pruneStep xs = Set.filter (((==) minEl) . fst) xs
-  where
-    (minEl, _) = Set.findMin xs
--- pruneStep xs = Set.fromList . filter (((==) minEl) . fst) . Set.toList $ xs
---   where minEl = minimum . map fst . Set.toList $ xs
-
--- advanceStack :: [StackState] -> [StackState]
--- advanceStack xs = foldl f [('[' : (fst . head) xs, ("", ""))] xs
---   where
---     f a@((m:_, _):_) e@(s, (x:xs, []))
---       | x < m = pickStack e
---       | x == m = pickStack e ++ a
---       | otherwise = a
---     f a@((m:_, _):_) e@(s, ([], y:xs))
---       | y < m = pickStack e
---       | y == m = pickStack e ++ a
---       | otherwise = a
---     f a@((m:_, _):_) e@(s, (x:xs, y:ys))
---       | min x y < m = pickStack e
---       | min x y == m = pickStack e ++ a
---       | otherwise = a
-
 advanceStack :: Set.Set StackState -> Set.Set StackState
-advanceStack q = pruneStep $ {-# SCC "union" #-} Set.unions $ {-# SCC "mapping" #-} map pickStack $ Set.toList $ q
+advanceStack xs = Set.foldl f (Set.singleton ('[' : (fst . Set.findMin) xs, ("", ""))) xs
+  where
+    g a m e@(_, (x:xs, []))
+      | x < m = pickStack e
+      | x == m = Set.union a $ pickStack e
+      | otherwise = a
+    g a m e@(_, ([], y:xs))
+      | y < m = pickStack e
+      | y == m = Set.union a $ pickStack e
+      | otherwise = a
+    g a m e@(_, (x:xs, y:ys))
+      | min x y < m = pickStack e
+      | min x y == m = Set.union a $ pickStack e
+      | otherwise = a
+    f a = g a ((head . fst . Set.findMin) $ a)
 
 minimalStack' :: Set.Set StackState -> String
 minimalStack' q
