@@ -12,10 +12,12 @@ isEmpty (_, _, sz) = sz == 0
 empty :: (Int -> Int -> Ordering) -> Int -> Heap
 empty f capacity = (f, array (0, pred capacity) [], 0)
 
-peekMax :: Heap -> Maybe Int
+size (_, _, sz) = sz
+
+peekMax :: Heap -> Int
 peekMax h@(_, xs, _)
-  | isEmpty h = Nothing
-  | otherwise = Just $ xs ! 0
+  | isEmpty h = error "Empty heap"
+  | otherwise = xs ! 0
 
 parent idx = (pred idx) `div` 2
 leftChild idx = 2 * idx + 1
@@ -43,3 +45,19 @@ popMax :: Heap -> Heap
 popMax h@(cmp, xs, sz)
   | isEmpty h = error "Empty heap"
   | otherwise = bubbleDown 0 (cmp, xs // [(0, xs ! pred sz)], pred sz)
+
+type HeapPair = (Heap, Heap)
+
+median :: HeapPair -> Float
+median (maxHeap, minHeap)
+  | size maxHeap == size minHeap = fromIntegral (peekMax maxHeap + peekMax minHeap) / 2
+  | size maxHeap >  size minHeap = fromIntegral $ peekMax maxHeap
+
+insertHeapPair x (maxHeap, minHeap)
+  | size maxHeap == size minHeap = (insert x maxHeap, minHeap)
+  | size maxHeap >  size minHeap = (maxHeap, insert x minHeap)
+
+runningMedians :: Int -> [Int] -> [Float]
+runningMedians n (x:xs) = fst $ foldl f ([], (insert x $ empty compare n, empty (flip compare) n)) xs
+  where
+    f (ms, heapPair) x = (median heapPair : ms, insertHeapPair x heapPair)
