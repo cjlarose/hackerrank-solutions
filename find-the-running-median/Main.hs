@@ -1,6 +1,7 @@
 module Main where
 
 import Data.Array.IArray (Array, array, bounds, (!), (//), elems)
+import Control.Monad (replicateM)
 
 type Heap = (Int -> Int -> Ordering, Array Int Int, Int)
 
@@ -72,3 +73,11 @@ runningHeapPairs n xs = f xs (empty compare n, empty (flip compare) n)
 
 runningMedians :: Int -> [Int] -> [Float]
 runningMedians n xs = map median $ runningHeapPairs n xs
+
+main = do
+  inputSizeLine <- getLine
+  let n = read inputSizeLine
+  elemLines <- replicateM n getLine
+  let xs = map read elemLines
+  let ms = runningMedians n xs
+  mapM print ms
