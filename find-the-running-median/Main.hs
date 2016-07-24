@@ -52,12 +52,53 @@ median :: HeapPair -> Float
 median (maxHeap, minHeap)
   | size maxHeap == size minHeap = fromIntegral (peekMax maxHeap + peekMax minHeap) / 2
   | size maxHeap >  size minHeap = fromIntegral $ peekMax maxHeap
+  | size maxHeap <  size minHeap = fromIntegral $ peekMax minHeap
+
+-- case 1: heaps of equal size, peekMax maxHeap <= x <= peekMax minHeap
+-- ([5.0], [8.0]) insert 7.0
+-- Insert into maxHeap on left
+-- ([7.0, 5.0], [8.0])
+-- Or insert into minHeap on right
+-- ([5.0], [7.0, 8.0])
+--
+-- case 1.5: heaps of equal size, peekMax maxHeap <= peekMax minHeap < x
+-- ([2.0], [4.0]) insert 7.0
+-- Inserting into the maxHeap would violate the constraint, so insert into minHeap
+-- ([2.0], [4.0, 7.0])
+--
+-- case 1.75 heaps of equal size, x < peekMax maxHeap <= peekMax minHeap
+-- ([5.0], [8.0]) insert 2.0
+-- Inserting into minHeap would violate constraint, so insert into maxHeap
+-- ([5.0, 2.0], [8.0])
+--
+--
+-- case 2: heaps of unequal size
+-- Insert into heap according to case 1
+-- ([7.0, 5.0], [12.0]) insert 14.0
+-- ([7.0, 5.0], [12.0, 14.0])
+--
+-- ([5.0], [7.0, 12.0]) insert 14.0
+-- ([5.0], [7.0, 12.0, 14.0])
+-- Then, rebalance
+-- ([7.0, 5.0], [12.0, 14.0])
+--
+-- ([7.0, 5.0], [12.0]) insert 2.0
+-- ([7.0, 5.0, 2.0], [12.0])
+-- Then, rebalance
+-- ([5.0, 2.0], [7.0, 12.0])
+rebalance (maxHeap, minHeap)
+  | size maxHeap - size minHeap >= 2 = (popMax maxHeap, insert (peekMax maxHeap) minHeap)
+  | size minHeap - size maxHeap >= 2 = (insert (peekMax minHeap) maxHeap, popMax minHeap)
+  | otherwise = (maxHeap, minHeap)
 
 insertHeapPair x (maxHeap, minHeap)
-  | size maxHeap == size minHeap = (insert x maxHeap, minHeap)
-  | size maxHeap >  size minHeap = (maxHeap, insert x minHeap)
+  | size minHeap == 0 = rebalance (insert x maxHeap, minHeap)
+  | x > peekMax minHeap = rebalance (maxHeap, insert x minHeap)
+  | otherwise = rebalance (insert x maxHeap, minHeap)
+
+f (ms, heapPair) x = (median newHeapPair : ms, newHeapPair)
+  where
+    newHeapPair = insertHeapPair x heapPair
 
 runningMedians :: Int -> [Int] -> [Float]
-runningMedians n (x:xs) = fst $ foldl f ([], (insert x $ empty compare n, empty (flip compare) n)) xs
-  where
-    f (ms, heapPair) x = (median heapPair : ms, insertHeapPair x heapPair)
+runningMedians n (x:xs) = fst $ foldl f ([fromIntegral x], (insert x $ empty compare n, empty (flip compare) n)) xs
