@@ -54,54 +54,21 @@ median (maxHeap, minHeap)
   | size maxHeap >  size minHeap = fromIntegral $ peekMax maxHeap
   | size maxHeap <  size minHeap = fromIntegral $ peekMax minHeap
 
--- case 1: heaps of equal size, peekMax maxHeap <= x <= peekMax minHeap
--- ([5.0], [8.0]) insert 7.0
--- Insert into maxHeap on left
--- ([7.0, 5.0], [8.0])
--- Or insert into minHeap on right
--- ([5.0], [7.0, 8.0])
---
--- case 1.5: heaps of equal size, peekMax maxHeap <= peekMax minHeap < x
--- ([2.0], [4.0]) insert 7.0
--- Inserting into the maxHeap would violate the constraint, so insert into minHeap
--- ([2.0], [4.0, 7.0])
---
--- case 1.75 heaps of equal size, x < peekMax maxHeap <= peekMax minHeap
--- ([5.0], [8.0]) insert 2.0
--- Inserting into minHeap would violate constraint, so insert into maxHeap
--- ([5.0, 2.0], [8.0])
---
---
--- case 2: heaps of unequal size
--- Insert into heap according to case 1
--- ([7.0, 5.0], [12.0]) insert 14.0
--- ([7.0, 5.0], [12.0, 14.0])
---
--- ([5.0], [7.0, 12.0]) insert 14.0
--- ([5.0], [7.0, 12.0, 14.0])
--- Then, rebalance
--- ([7.0, 5.0], [12.0, 14.0])
---
--- ([7.0, 5.0], [12.0]) insert 2.0
--- ([7.0, 5.0, 2.0], [12.0])
--- Then, rebalance
--- ([5.0, 2.0], [7.0, 12.0])
 rebalance (maxHeap, minHeap)
   | size maxHeap - size minHeap >= 2 = (popMax maxHeap, insert (peekMax maxHeap) minHeap)
   | size minHeap - size maxHeap >= 2 = (insert (peekMax minHeap) maxHeap, popMax minHeap)
   | otherwise = (maxHeap, minHeap)
 
 insertHeapPair x (maxHeap, minHeap)
-  | size minHeap == 0 = rebalance (insert x maxHeap, minHeap)
-  | x > peekMax minHeap = rebalance (maxHeap, insert x minHeap)
-  | otherwise = rebalance (insert x maxHeap, minHeap)
-
-runningHeapPairs' :: [Int] -> HeapPair -> [HeapPair]
-runningHeapPairs' [] _ = []
-runningHeapPairs' (x:xs) hp = insertHeapPair x hp : runningHeapPairs' xs (insertHeapPair x hp)
+  | size minHeap == 0 || x <= peekMax minHeap = rebalance (insert x maxHeap, minHeap)
+  | otherwise = rebalance (maxHeap, insert x minHeap)
 
 runningHeapPairs :: Int -> [Int] -> [HeapPair]
-runningHeapPairs n xs = runningHeapPairs' xs (empty compare n, empty (flip compare) n)
+runningHeapPairs n xs = f xs (empty compare n, empty (flip compare) n)
+  where
+    f :: [Int] -> HeapPair -> [HeapPair]
+    f [] _ = []
+    f (x:xs) hp = insertHeapPair x hp : f xs (insertHeapPair x hp)
 
 runningMedians :: Int -> [Int] -> [Float]
 runningMedians n xs = map median $ runningHeapPairs n xs
