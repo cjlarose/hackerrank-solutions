@@ -101,4 +101,4 @@ f (ms, heapPair) x = (median newHeapPair : ms, newHeapPair)
     newHeapPair = insertHeapPair x heapPair
 
 runningMedians :: Int -> [Int] -> [Float]
-runningMedians n (x:xs) = fst $ foldl f ([fromIntegral x], (insert x $ empty compare n, empty (flip compare) n)) xs
+runningMedians n xs = fst $ foldl f ([], (empty compare n, empty (flip compare) n)) xs
