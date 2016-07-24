@@ -96,9 +96,12 @@ insertHeapPair x (maxHeap, minHeap)
   | x > peekMax minHeap = rebalance (maxHeap, insert x minHeap)
   | otherwise = rebalance (insert x maxHeap, minHeap)
 
-f (ms, heapPair) x = (median newHeapPair : ms, newHeapPair)
-  where
-    newHeapPair = insertHeapPair x heapPair
+runningHeapPairs' :: [Int] -> HeapPair -> [HeapPair]
+runningHeapPairs' [] _ = []
+runningHeapPairs' (x:xs) hp = insertHeapPair x hp : runningHeapPairs' xs (insertHeapPair x hp)
+
+runningHeapPairs :: Int -> [Int] -> [HeapPair]
+runningHeapPairs n xs = runningHeapPairs' xs (empty compare n, empty (flip compare) n)
 
 runningMedians :: Int -> [Int] -> [Float]
-runningMedians n xs = fst $ foldl f ([], (empty compare n, empty (flip compare) n)) xs
+runningMedians n xs = map median $ runningHeapPairs n xs
