@@ -37,9 +37,8 @@ insert x (cmp, xs, size) = bubbleUp size (cmp, xs // [(size, x)], succ size)
 
 bubbleDown :: Int -> Heap -> Heap
 bubbleDown idx h@(cmp, xs, size)
-  | leftChild idx >= size && rightChild idx >= size = h
   | leftChild idx < size && (rightChild idx >= size || ((xs ! leftChild idx) `cmp` (xs ! rightChild idx) == GT)) && (xs ! idx) `cmp` (xs ! leftChild idx) == LT = bubbleDown (leftChild idx) (cmp, xs // [(idx, xs ! leftChild idx), (leftChild idx, xs ! idx)], size)
-  | (xs ! idx) `cmp` (xs ! rightChild idx) == LT = bubbleDown (rightChild idx) (cmp, xs // [(idx, xs ! rightChild idx), (rightChild idx, xs ! idx)], size)
+  | rightChild idx < size && (xs ! idx) `cmp` (xs ! rightChild idx) == LT = bubbleDown (rightChild idx) (cmp, xs // [(idx, xs ! rightChild idx), (rightChild idx, xs ! idx)], size)
   | otherwise = h
 
 popMax :: Heap -> Heap
