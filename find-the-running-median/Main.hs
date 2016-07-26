@@ -4,6 +4,7 @@ import Data.Array.IArray (Array, array, bounds, (!), (//), elems)
 import Control.Monad (replicateM)
 
 type Heap = (Int -> Int -> Ordering, Array Int Int, Int)
+type HeapPair = (Heap, Heap)
 
 heapToList (_, xs, sz) = take sz $ elems xs
 
@@ -45,8 +46,6 @@ popMax :: Heap -> Heap
 popMax h@(cmp, xs, sz)
   | isEmpty h = error "Empty heap"
   | otherwise = bubbleDown 0 (cmp, xs // [(0, xs ! pred sz)], pred sz)
-
-type HeapPair = (Heap, Heap)
 
 median :: HeapPair -> Float
 median (maxHeap, minHeap)
