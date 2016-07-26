@@ -14,7 +14,7 @@ isEmpty :: Heap -> Bool
 isEmpty (_, _, sz) = sz == 0
 
 empty :: (Int -> Int -> Ordering) -> Int -> Heap
-empty f capacity = (f, G.replicate capacity (-1), 0)
+empty f capacity = (f, G.replicate capacity minBound, 0)
 
 size (_, _, sz) = sz
 
