@@ -1,25 +1,27 @@
 module Main where
 
-import Data.Array.IArray (Array, array, bounds, (!), (//), elems)
+import qualified Data.Vector as V
+import Data.Vector ((!), (//))
+import qualified Data.Vector.Generic as G
 import Control.Monad (replicateM)
 
-type Heap = (Int -> Int -> Ordering, Array Int Int, Int)
+type Heap = (Int -> Int -> Ordering, V.Vector Int, Int)
 type HeapPair = (Heap, Heap)
 
-heapToList (_, xs, sz) = take sz $ elems xs
+heapToList (_, xs, sz) = take sz $ G.toList xs
 
 isEmpty :: Heap -> Bool
 isEmpty (_, _, sz) = sz == 0
 
 empty :: (Int -> Int -> Ordering) -> Int -> Heap
-empty f capacity = (f, array (0, pred capacity) [], 0)
+empty f capacity = (f, G.replicate capacity (-1), 0)
 
 size (_, _, sz) = sz
 
 peekMax :: Heap -> Int
 peekMax h@(_, xs, _)
   | isEmpty h = error "Empty heap"
-  | otherwise = xs ! 0
+  | otherwise = V.head xs
 
 parent idx = (pred idx) `div` 2
 leftChild idx = 2 * idx + 1
