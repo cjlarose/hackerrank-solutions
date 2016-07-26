@@ -27,16 +27,12 @@ parent idx = (pred idx) `div` 2
 leftChild idx = 2 * idx + 1
 rightChild idx = 2 * idx + 2
 
-bubbleUp :: Int -> Heap -> Heap
-bubbleUp 0 h = h
-bubbleUp idx h@(cmp, xs, sz)
-  | (xs ! idx) `cmp` (xs ! (parent idx)) == LT = h
-  | otherwise = bubbleUp (parent idx) (cmp, newHeap, sz)
-                  where
-                    newHeap = xs // [(idx, xs ! (parent idx)), (parent idx, xs ! idx)]
-
 insert :: Int -> Heap -> Heap
-insert x (cmp, xs, size) = bubbleUp size (cmp, xs // [(size, x)], succ size)
+insert x (cmp, xs, size) = (cmp, xs // updates size [], succ size)
+  where
+    updates i acc
+      | i /= 0 && x `cmp` (xs ! parent i) == GT = updates (parent i) $ (i, xs ! parent i) : acc
+      | otherwise                               = (i, x) : acc
 
 bubbleDown :: Int -> Heap -> Heap
 bubbleDown idx h@(cmp, xs, size)
