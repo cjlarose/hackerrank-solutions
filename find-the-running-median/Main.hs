@@ -41,8 +41,14 @@ popMax h@(cmp, xs, size)
       where
         updates :: Int -> [(Int, Int)] -> [(Int, Int)]
         updates i acc
-          | leftChild i < pred size && (rightChild i >= pred size || (xs ! leftChild i) `cmp` (xs ! rightChild i) == GT) && (xs ! pred size) `cmp` (xs ! leftChild i) == LT = updates (leftChild i) $ (i, xs ! leftChild i) : acc
-          | rightChild i < pred size && (xs ! pred size) `cmp` (xs ! rightChild i) == LT = updates (rightChild i) $ (i, xs ! rightChild i) : acc
+          | leftChild i < pred size &&
+              (rightChild i >= pred size ||
+                (xs ! leftChild i) `cmp` (xs ! rightChild i) == GT) &&
+              (xs ! pred size) `cmp` (xs ! leftChild i) == LT
+            = updates (leftChild i) $ (i, xs ! leftChild i) : acc
+          | rightChild i < pred size &&
+              (xs ! pred size) `cmp` (xs ! rightChild i) == LT
+            = updates (rightChild i) $ (i, xs ! rightChild i) : acc
           | otherwise     = (i, xs ! pred size) : acc
 
 median :: HeapPair -> Float
