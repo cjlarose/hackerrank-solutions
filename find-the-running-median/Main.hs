@@ -34,16 +34,16 @@ insert x (cmp, xs, size) = (cmp, xs // updates size [], succ size)
       | i /= 0 && x `cmp` (xs ! parent i) == GT = updates (parent i) $ (i, xs ! parent i) : acc
       | otherwise                               = (i, x) : acc
 
-bubbleDown :: Int -> Heap -> Heap
-bubbleDown idx h@(cmp, xs, size)
-  | leftChild idx < size && (rightChild idx >= size || ((xs ! leftChild idx) `cmp` (xs ! rightChild idx) == GT)) && (xs ! idx) `cmp` (xs ! leftChild idx) == LT = bubbleDown (leftChild idx) (cmp, xs // [(idx, xs ! leftChild idx), (leftChild idx, xs ! idx)], size)
-  | rightChild idx < size && (xs ! idx) `cmp` (xs ! rightChild idx) == LT = bubbleDown (rightChild idx) (cmp, xs // [(idx, xs ! rightChild idx), (rightChild idx, xs ! idx)], size)
-  | otherwise = h
-
 popMax :: Heap -> Heap
-popMax h@(cmp, xs, sz)
+popMax h@(cmp, xs, size)
   | isEmpty h = error "Empty heap"
-  | otherwise = bubbleDown 0 (cmp, xs // [(0, xs ! pred sz)], pred sz)
+  | otherwise = (cmp, xs // updates 0 [], pred size)
+      where
+        updates :: Int -> [(Int, Int)] -> [(Int, Int)]
+        updates i acc
+          | leftChild i < pred size && (rightChild i >= pred size || (xs ! leftChild i) `cmp` (xs ! rightChild i) == GT) && (xs ! pred size) `cmp` (xs ! leftChild i) == LT = updates (leftChild i) $ (i, xs ! leftChild i) : acc
+          | rightChild i < pred size && (xs ! pred size) `cmp` (xs ! rightChild i) == LT = updates (rightChild i) $ (i, xs ! rightChild i) : acc
+          | otherwise     = (i, xs ! pred size) : acc
 
 median :: HeapPair -> Float
 median (maxHeap, minHeap)
