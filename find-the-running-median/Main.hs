@@ -1,7 +1,7 @@
 module Main where
 
-import qualified Data.Vector as V
-import Data.Vector ((!), (//))
+import qualified Data.Vector.Unboxed as V
+import Data.Vector.Unboxed ((!), (//))
 import qualified Data.Vector.Generic as G
 import Control.Monad (replicateM)
 
